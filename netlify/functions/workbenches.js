@@ -1,11 +1,8 @@
-// netlify/functions/workbenches.js
-import fetch from "node-fetch";
-
 const TENANT = "nikeonis-partner-sandbox.us-2.celonis.cloud";
 
 export async function handler(event, context) {
   try {
-    const token = process.env.CELONIS_PAT; // ← Set this in Netlify Environment Variables
+    const token = process.env.CELONIS_PAT;
 
     if (!token) {
       return {
@@ -14,7 +11,7 @@ export async function handler(event, context) {
       };
     }
 
-    // 1) Fetch all Apps
+    // 1) Get all apps
     const appsRes = await fetch(`https://${TENANT}/intelligence/api/applications`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -29,7 +26,7 @@ export async function handler(event, context) {
     const apps = await appsRes.json();
     const workbenches = [];
 
-    // 2) For each app, fetch pages and filter workbenches
+    // 2) For each app, fetch pages and filter for Workbenches
     for (const app of apps.data || []) {
       const pagesRes = await fetch(
         `https://${TENANT}/intelligence/api/applications/${app.id}/pages`,

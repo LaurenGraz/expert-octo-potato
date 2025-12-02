@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Celonis Workbench Picker</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h2 { margin-bottom: 20px; }
+    .item {
+      margin: 10px 0;
+      padding: 10px 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: 0.15s;
+    }
+    .item:hover {
+      background: #e8e8e8;
+      transform: translateX(4px);
+    }
+    .app-name {
+      font-size: 12px;
+      color: #666;
+    }
+    .page-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Select a Workbench</h2>
+  <div id="list">Loading workbenches...</div>
+
+<script>
+const TENANT = "nikeonis-partner-sandbox.us-2.celonis.cloud";
+
+async function loadWorkbenches() {
+  const listDiv = document.getElementById("list");
+
+  try {
+    // Call your Netlify Function instead of Celonis directly.
+    const res = await fetch("/.netlify/functions/workbenches");
+
+    if (!res.ok) {
+      listDiv.textContent = "Error loading workbenches.";
+      return;
+    }
+
+    const workbenches = await res.json();
+
+    if (!Array.isArray(workbenches) || workbenches.length === 0) {
+      listDiv.textContent = "No workbenches found.";
+      return;
+    }
+
+    listDiv.innerHTML = "";
+
+    workbenches.forEach(wb => {
+      const div = document.createElement("div");
+      div.className = "item";
+
+      const pageEl = document.createElement("div");
+      pageEl.className = "page-name";
+      pageEl.textContent = wb.pageName;
+
+      const appEl = document.createElement("div");
+      appEl.className = "app-name";
+      appEl.textContent = wb.appName;
+
+      div.appendChild(pageEl);
+      div.appendChild(appEl);
+
+      div.onclick = () => {
+        // Open selected workbench back inside Celonis.
+        window.top.location.href =
+          `https://${TENANT}/app/${wb.appId}/page/${wb.pageId}`;
+      };
+
+      listDiv.appendChild(div);
+    });
+  } catch (e) {
+    listDiv.textContent = "Unexpected error loading workbenches.";
+    console.error(e);
+  }
+}
+
+loadWorkbenches();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Select Workbench</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h2 { margin-bottom: 20px; }
+    .item {
+      margin: 10px 0;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .item:hover {
+      background: #e8e8e8;
+      transform: translateX(4px);
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Select a Workbench</h2>
+<div id="list">Loading workbenches...</div>
+
+<script>
+const TENANT = "nikeonis-partner-sandbox.us-2.celonis.cloud";
+const TOKEN = "NGExMDk1NmItNjJmNC00ZGM3LTg1MmUtMDYyNTU4NTg4YTU4OkR2cnBHYVB3akdyNHpXOHprVEFzeXZ0R2NmRy81RGFxTTB1VFZYZk1kcmFQ";   // ← Replace this
+
+async function fetchWorkbenches() {
+  const listDiv = document.getElementById("list");
+
+  // 1. Fetch all Apps
+  const appsResponse = await fetch(
+    `https://${TENANT}/intelligence/api/applications`,
+    {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    }
+  );
+
+  const apps = await appsResponse.json();
+  let workbenches = [];
+
+  // 2. Loop through all apps and fetch their pages
+  for (let app of apps.data) {
+    const pagesResponse = await fetch(
+      `https://${TENANT}/intelligence/api/applications/${app.id}/pages`,
+      {
+        headers: { Authorization: `Bearer ${TOKEN}` }
+      }
+    );
+
+    const pages = await pagesResponse.json();
+
+    // 3. Extract workbenches
+    pages.data
+      .filter(p => p.type === "WORKBENCH")
+      .forEach(p =>
+        workbenches.push({
+          name: p.name,
+          appId: app.id,
+          pageId: p.id
+        })
+      );
+  }
+
+  // 4. Render them
+  listDiv.innerHTML = "";
+
+  if (workbenches.length === 0) {
+    listDiv.innerHTML = "No workbenches found.";
+    return;
+  }
+
+  workbenches.forEach(wb => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = wb.name;
+
+    div.onclick = () => {
+      // Open selected workbench inside Celonis, exiting the iframe
+      window.top.location.href =
+        `https://${TENANT}/app/${wb.appId}/page/${wb.pageId}`;
+    };
+
+    listDiv.appendChild(div);
+  });
+}
+
+fetchWorkbenches();
+</script>
+
+</body>
+</html>

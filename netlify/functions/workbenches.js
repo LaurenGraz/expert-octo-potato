@@ -11,8 +11,11 @@ export async function handler(event, context) {
       };
     }
 
+    // CORRECT BASE URL for US-2
+    const baseUrl = `https://${TENANT}/api`;
+
     // 1) Get all apps
-    const appsRes = await fetch(`https://${TENANT}/intelligence/api/applications`, {
+    const appsRes = await fetch(`${baseUrl}/applications`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -26,14 +29,11 @@ export async function handler(event, context) {
     const apps = await appsRes.json();
     const workbenches = [];
 
-    // 2) For each app, fetch pages and filter for Workbenches
+    // 2) For each app, fetch pages
     for (const app of apps.data || []) {
-      const pagesRes = await fetch(
-        `https://${TENANT}/intelligence/api/applications/${app.id}/pages`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const pagesRes = await fetch(`${baseUrl}/applications/${app.id}/pages`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       if (!pagesRes.ok) continue;
 
